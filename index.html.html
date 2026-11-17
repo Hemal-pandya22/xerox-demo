@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Xerox Center</title>
+<style>
+:root{--bg:#fff7f8;--card:#fff;--ink:#1c1417;--mute:#7a6a70;--line:#f0d9de;--brand:#e11d48;--ok:#16a34a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#150d10;--card:#21161a;--ink:#f7eef0;--mute:#b39da4;--line:#3a2830;color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.45}
+header{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+header b{font-size:15px}
+.tabs{display:flex;gap:6px}
+.tabs button{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:8px 14px;border-radius:999px;font-size:14px;cursor:pointer}
+.tabs button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+main{max-width:640px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:26px;margin:8px 0 4px}
+p.sub{color:var(--mute);margin:0 0 18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+.drop{border:2px dashed var(--brand);text-align:center;padding:28px 12px;cursor:pointer}
+.drop small{display:block;color:var(--mute)}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.btn{border:0;background:var(--brand);color:#fff;padding:11px 18px;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer}
+.btn.alt{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn:disabled{opacity:.5;cursor:default}
+label{display:block;font-size:13px;color:var(--mute);margin:10px 0 4px}
+select,input[type=number],input[type=text]{width:100%;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:15px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.preview{max-width:100%;max-height:220px;border-radius:10px;display:block;margin:0 auto}
+.total{display:flex;justify-content:space-between;font-size:18px;font-weight:700;margin-top:14px}
+.bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin-top:10px}
+.bar i{display:block;height:100%;width:0;background:var(--brand);transition:width .2s}
+.note{font-size:13px;color:var(--mute)}
+.badge{display:inline-block;font-size:12px;padding:2px 8px;border-radius:999px;background:var(--line)}
+.badge.done{background:var(--ok);color:#fff}
+.token{font-size:34px;font-weight:800;color:var(--brand);text-align:center}
+.stepper{display:flex;justify-content:space-between;margin:14px 0 6px;text-align:center}
+.st{flex:1;position:relative;display:flex;flex-direction:column;align-items:center;gap:2px}
+.st::before{content:"";position:absolute;top:13px;left:-50%;width:100%;height:3px;background:var(--line)}
+.st:first-child::before{display:none}
+.st.done::before,.st.now::before{background:var(--brand)}
+.dot{width:28px;height:28px;border-radius:50%;background:var(--line);display:grid;place-items:center;font-size:13px;font-weight:700;position:relative;z-index:1}
+.st.done .dot{background:var(--brand);color:#fff}
+.st.now .dot{background:var(--card);border:3px solid var(--brand);color:var(--brand)}
+.st small{font-size:11px;color:var(--mute)}
+.st .t{font-size:10px}
+.hide{display:none}
+.job{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
+.job h3{margin:0;font-size:16px;word-break:break-all}
+</style>
+</head>
+<body>
+<header>
+  <b>🖨 Xerox Center</b>
+  <div class="tabs">
+    <button id="tabC" class="on">📱 Customer</button>
+    <button id="tabO">🖥 Owner’s PC</button>
+  </div>
+</header>
+
+<main>
+<!-- CUSTOMER -->
+<section id="vC">
+  <h1>Print it. Skip the queue.</h1>
+  <p class="sub">Pick a file, choose options, pay, and it goes straight to the counter.</p>
+
+  <div id="step1" class="card drop">
+    <div style="font-size:32px">⇪</div>
+    <b>Tap to select a file</b>
+    <small>PDF, JPG, PNG · up to 30 MB</small>
+    <div class="row" style="justify-content:center">
+      <button class="btn" id="browse">Browse files</button>
+      <button class="btn alt" id="cam">📷 Use camera</button>
+    </div>
+    <div class="bar hide" id="bar"><i id="barI"></i></div>
+    <input id="file" type="file" accept=".pdf,image/jpeg,image/png" class="hide">
+    <input id="camIn" type="file" accept="image/*" capture="environment" class="hide">
+  </div>
+
+  <div id="step2" class="card hide">
+    <div id="prev"></div>
+    <p id="fInfo" class="note" style="text-align:center"></p>
+    <div class="grid">
+      <div><label>Copies</label><input id="copies" type="number" min="1" max="100" value="1"></div>
+      <div><label>Pages in file</label><input id="pages" type="number" min="1" max="500" value="1"></div>
+      <div><label>Colour</label><select id="color"><option value="bw">Black &amp; white</option><option value="color">Colour</option></select></div>
+      <div><label>Paper size</label><select id="size"><option>A4</option><option>A3</option><option>Legal</option></select></div>
+      <div><label>Sides</label><select id="sides"><option value="single">Single side</option><option value="double">Both sides</option></select></div>
+      <div><label>Orientation</label><select id="orient"><option value="portrait">Portrait</option><option value="landscape">Landscape</option></select></div>
+    </div>
+    <label>Your name / mobile (optional)</label>
+    <input id="cname" type="text" placeholder="e.g. Ravi">
+    <div class="total"><span>Total</span><span id="total">₹0</span></div>
+    <p class="note" id="rate"></p>
+    <div class="row">
+      <button class="btn" id="pay">Pay (demo UPI) &amp; send</button>
+      <button class="btn alt" id="reset">Change file</button>
+    </div>
+  </div>
+
+  <div id="step3" class="card hide" style="text-align:center">
+    <div style="font-size:40px">✅</div>
+    <b>Sent to the counter!</b>
+    <p class="note">Show this token to the shop owner</p>
+    <div class="token" id="token">A-000</div>
+    <div id="stepper1"></div><p class="note" id="status"></p>
+    <button class="btn" id="again">Print another file</button>
+  </div>
+
+  <div class="card">
+    <b>📍 Track your order</b>
+    <div class="row" style="margin-top:6px">
+      <input id="trkIn" type="text" placeholder="Enter token, e.g. A-123" style="flex:1;min-width:140px">
+      <button class="btn" id="trkBtn">Track</button>
+    </div>
+    <div id="trkOut" data-id=""></div>
+  </div>
+
+  <p class="note">🔒 <b>Demo only.</b> Your file never leaves this device. It is read in your browser and handed to the owner’s tab (open the Owner’s PC view in a second tab to see it arrive).</p>
+</section>
+
+<!-- OWNER -->
+<section id="vO" class="hide">
+  <h1>Owner’s PC</h1>
+  <p class="sub">New print jobs appear here. Keep this tab open.</p>
+  <div class="card">
+    <label style="display:flex;gap:8px;align-items:center;margin:0;color:var(--ink)">
+      <input type="checkbox" id="auto" style="width:auto"> Auto-print when a job arrives
+    </label>
+    <p class="note" style="margin-bottom:0">Browsers may still ask you to confirm in the print dialog. For fully silent printing, launch Chrome with <code>--kiosk-printing</code>.</p>
+  </div>
+  <div id="jobs"><p class="note" id="empty">No jobs yet. Waiting…</p></div>
+</section>
+</main>
+
+<script>
+(function(){
+  var RATE={bw:2,color:10}, SIZEX={A4:1,A3:2,Legal:1.2};
+  var $=function(id){return document.getElementById(id)};
+  var tx,rx;
+  try{ tx=new BroadcastChannel('xerox-demo'); rx=new BroadcastChannel('xerox-demo'); }catch(e){ tx=rx=null; }
+  var file=null, myToken=null, jobs=[];
+
+  /* ---- order tracking ---- */
+  var STAGES=[['sent','Sent'],['received','Received'],['printing','Printing'],['printed','Ready'],['collected','Collected']];
+  var memO={};
+  function loadO(){try{return JSON.parse(localStorage.getItem('xerox-orders')||'{}')}catch(e){return {}}}
+  function saveO(o){try{localStorage.setItem('xerox-orders',JSON.stringify(o))}catch(e){}}
+  function getO(){var o=loadO();for(var k in memO){if(!o[k]||memO[k].time>o[k].time)o[k]=memO[k]}return o}
+  function msg(st){return {sent:'Sent. Waiting for the shop to receive it…',received:'The shop has your file.',printing:'🖨 Your file is being printed now.',printed:'✅ Ready! Please collect from the counter.',collected:'Collected. Thank you!'}[st]||''}
+  function setStatus(id,st,extra){
+    var o=getO(),cur=o[id]||{log:{}};
+    cur.status=st;cur.time=Date.now();cur.log=cur.log||{};cur.log[st]=new Date().toLocaleTimeString();
+    if(extra){for(var k in extra)cur[k]=extra[k]}
+    o[id]=cur;memO[id]=cur;saveO(o);
+    if(tx)tx.postMessage({kind:'status',id:id,rec:cur});
+    refreshTracking();
+  }
+  function stepperHTML(rec){
+    var idx=0;STAGES.forEach(function(s,i){if(s[0]===rec.status)idx=i});
+    return '<div class="stepper">'+STAGES.map(function(s,i){
+      return '<div class="st '+(i<idx?'done':i===idx?'now':'')+'"><span class="dot">'+(i<idx?'✓':i+1)+'</span><small>'+s[1]+'</small><small class="t">'+((rec.log&&rec.log[s[0]])||'')+'</small></div>';
+    }).join('')+'</div>';
+  }
+  function showTrack(id){
+    var r=getO()[id],out=$('trkOut');out.setAttribute('data-id',id);
+    if(!r){out.innerHTML='<p class="note">No order found for '+esc(id)+'. Please check the token.</p>';return}
+    out.innerHTML='<p class="note"><b>'+esc(id)+'</b> · '+esc(r.name||'')+'</p>'+stepperHTML(r)+'<p class="note">'+msg(r.status)+'</p>';
+  }
+  function refreshTracking(){
+    var o=getO();
+    if(myToken&&o[myToken]){$('stepper1').innerHTML=stepperHTML(o[myToken]);$('status').textContent=msg(o[myToken].status)}
+    var t=$('trkOut').getAttribute('data-id');if(t)showTrack(t);
+    if(jobs.length)render();
+  }
+  function markSeen(){jobs.forEach(function(j){if(!j.seen){j.seen=true;setStatus(j.id,'received',{name:j.name})}})}
+  $('trkBtn').onclick=function(){var v=$('trkIn').value.trim().toUpperCase();if(v)showTrack(v)};
+  $('trkIn').onkeydown=function(e){if(e.key==='Enter')$('trkBtn').onclick()};
+
+  /* tabs */
+  function show(v){
+    $('vC').classList.toggle('hide',v!=='C'); $('vO').classList.toggle('hide',v!=='O');
+    $('tabC').classList.toggle('on',v==='C'); $('tabO').classList.toggle('on',v==='O');
+  }
+  $('tabC').onclick=function(){show('C')}; $('tabO').onclick=function(){show('O');markSeen()};
+
+  /* pick file */
+  $('browse').onclick=function(e){e.stopPropagation();$('file').click()};
+  $('cam').onclick=function(e){e.stopPropagation();$('camIn').click()};
+  $('step1').onclick=function(){$('file').click()};
+  $('file').onchange=function(e){pick(e.target.files[0])};
+  $('camIn').onchange=function(e){pick(e.target.files[0])};
+
+  function pick(f){
+    if(!f) return;
+    var ok=/pdf|jpeg|png/.test(f.type);
+    if(!ok){alert('Please choose a PDF, JPG or PNG file.');return}
+    if(f.size>30*1024*1024){alert('File is larger than 30 MB.');return}
+    var bar=$('bar'),bi=$('barI'); bar.classList.remove('hide'); bi.style.width='0';
+    var r=new FileReader();
+    r.onprogress=function(e){ if(e.lengthComputable) bi.style.width=(e.loaded/e.total*100)+'%' };
+    r.onload=function(){
+      bi.style.width='100%'; file=f;
+      var pages=1;
+      if(f.type==='application/pdf'){
+        var s=new TextDecoder('latin1').decode(new Uint8Array(r.result));
+        var m=s.match(/\/Type\s*\/Page[^s]/g); pages=m?m.length:1;
+      }
+      $('pages').value=pages;
+      var p=$('prev'); p.innerHTML='';
+      if(f.type.indexOf('image')===0){
+        var im=document.createElement('img'); im.className='preview'; im.src=URL.createObjectURL(f); p.appendChild(im);
+      } else {
+        p.innerHTML='<div style="font-size:48px;text-align:center">📄</div>';
+      }
+      $('fInfo').textContent=f.name+' · '+(f.size/1024/1024).toFixed(2)+' MB';
+      setTimeout(function(){$('step1').classList.add('hide');$('step2').classList.remove('hide');bar.classList.add('hide');calc()},250);
+    };
+    r.readAsArrayBuffer(f);
+  }
+
+  /* price */
+  function calc(){
+    var c=Math.max(1,+$('copies').value||1), pg=Math.max(1,+$('pages').value||1);
+    var col=$('color').value, sz=$('size').value, dbl=$('sides').value==='double';
+    var sheetsFactor=dbl?Math.ceil(pg/2)/pg:1;
+    var perPage=RATE[col]*SIZEX[sz]*(dbl?0.8:1);
+    var t=Math.round(perPage*pg*c);
+    $('total').textContent='₹'+t;
+    $('rate').textContent=pg+' page(s) × '+c+' copy · ₹'+perPage.toFixed(1)+' per page';
+    return t;
+  }
+  ['copies','pages','color','size','sides'].forEach(function(id){$(id).oninput=calc;$(id).onchange=calc});
+  function reset(){file=null;$('file').value='';$('camIn').value='';$('step2').classList.add('hide');$('step3').classList.add('hide');$('step1').classList.remove('hide')}
+  $('reset').onclick=reset; $('again').onclick=reset;
+
+  /* pay + send */
+  $('pay').onclick=function(){
+    if(!file) return;
+    var btn=$('pay'); btn.disabled=true; btn.textContent='Processing payment…';
+    setTimeout(function(){
+      var total=calc();
+      myToken='A-'+Math.floor(100+Math.random()*900);
+      setStatus(myToken,'sent',{name:file.name});
+      var job={id:myToken,name:file.name,type:file.type,size:file.size,blob:file,
+        pages:+$('pages').value,copies:+$('copies').value,color:$('color').value,paper:$('size').value,
+        sides:$('sides').value,orient:$('orient').value,customer:$('cname').value||'Walk-in',total:total,time:new Date().toLocaleTimeString()};
+      if(tx) tx.postMessage({kind:'job',job:job});
+      else { addJob(job); }
+      $('token').textContent=myToken;
+            $('step2').classList.add('hide'); $('step3').classList.remove('hide');
+      btn.disabled=false; btn.textContent='Pay (demo UPI) & send';
+    },900);
+  };
+
+  /* owner side */
+  if(rx) rx.onmessage=function(e){
+    var d=e.data;
+    if(d.kind==='job') addJob(d.job);
+    if(d.kind==='status'){
+      var ex=getO()[d.id];
+      if(!ex||d.rec.time>=ex.time){memO[d.id]=d.rec}
+      refreshTracking();
+    }
+  };
+
+  function addJob(job){
+    job.url=URL.createObjectURL(job.blob); job.done=false; job.seen=false; jobs.unshift(job);
+    if(!$('vO').classList.contains('hide')) markSeen();
+    render();
+    if($('auto').checked) printJob(job);
+  }
+
+  function render(){
+    var box=$('jobs'); box.innerHTML='';
+    if(!jobs.length){box.innerHTML='<p class="note">No jobs yet. Waiting…</p>';return}
+    jobs.forEach(function(j){
+      var d=document.createElement('div'); d.className='card';
+      var st=((getO()[j.id])||{}).status||'sent';
+      d.innerHTML='<div class="job"><div><span class="badge '+(st==='printed'||st==='collected'?'done':'')+'">'+(({sent:'Incoming',received:'New',printing:'Printing',printed:'Ready',collected:'Collected'})[st]||'New')+'</span> <b>'+j.id+'</b> · '+esc(j.customer)+
+        '<h3>'+esc(j.name)+'</h3><div class="note">'+j.pages+' pg × '+j.copies+' · '+(j.color==='bw'?'B&amp;W':'Colour')+' · '+j.paper+' · '+(j.sides==='double'?'Both sides':'Single')+' · '+j.orient+
+        '<br>Paid ₹'+j.total+' · '+j.time+'</div></div></div>';
+      var row=document.createElement('div'); row.className='row';
+      var pb=document.createElement('button'); pb.className='btn'; pb.textContent='🖨 Print'; pb.onclick=function(){printJob(j)};
+      var ob=document.createElement('a'); ob.className='btn alt'; ob.textContent='Open'; ob.href=j.url; ob.target='_blank'; ob.style.textDecoration='none';
+      row.appendChild(pb);
+      if(st==='printing'||st==='printed'){
+        var nb=document.createElement('button');nb.className='btn alt';
+        nb.textContent=st==='printing'?'✔ Mark ready':'✔ Mark collected';
+        nb.onclick=function(){setStatus(j.id,st==='printing'?'printed':'collected')};
+        row.appendChild(nb);
+      }
+      row.appendChild(ob); d.appendChild(row); box.appendChild(d);
+    });
+  }
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+
+  function printJob(j){
+    setStatus(j.id,'printing');
+    var f=document.createElement('iframe');
+    f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0';
+    document.body.appendChild(f);
+    function done(){
+      render();
+      
+      setTimeout(function(){f.remove()},60000);
+    }
+    if(j.type.indexOf('image')===0){
+      var imgs='',i; for(i=0;i<j.copies;i++) imgs+='<img src="'+j.url+'" style="width:100%;page-break-after:always;'+(j.color==='bw'?'filter:grayscale(1);':'')+'">';
+      f.srcdoc='<html><head><style>@page{size:'+j.paper+' '+j.orient+';margin:10mm}body{margin:0}</style></head><body>'+imgs+'</body></html>';
+      f.onload=function(){setTimeout(function(){f.contentWindow.focus();f.contentWindow.print();done()},300)};
+    } else {
+      f.src=j.url;
+      f.onload=function(){setTimeout(function(){try{f.contentWindow.focus();f.contentWindow.print()}catch(e){window.open(j.url,'_blank')}done()},500)};
+    }
+  }
+})();
+</script>
+</body>
+</html>
